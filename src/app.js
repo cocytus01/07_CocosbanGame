@@ -2,9 +2,9 @@ var size;
 var level = [
   [1, 1, 1, 1, 1, 1, 1],
   [1, 1, 0, 0, 0, 0, 1],
-  [1, 1, 3, 0, 2, 0, 1],
+  [1, 1, 3, 3, 2, 0, 1],
   [1, 0, 0, 4, 0, 0, 1],
-  [1, 0, 3, 1, 2, 0, 1],
+  [1, 0, 0, 1, 0, 2, 1],
   [1, 0, 0, 1, 1, 1, 1],
   [1, 1, 1, 1, 1, 1, 1]
 ];
@@ -16,14 +16,19 @@ var startTouch;
 var endTouch;
 var swipeTolerance = 10;//スワイプかを判断する閾値
 
+var flg =0;
+var audioEngine;
+
+
 var gameScene = cc.Scene.extend({
   onEnter: function() {
     this._super();
+    audioEngine = cc.audioEngine;
 
+    audioEngine.playMusic(res.bgm, true);
     var layer0 = new gameLayer();
     layer0.init();
     this.addChild(layer0);
-
   }
 });
 
@@ -131,10 +136,13 @@ function swipeDirection(){
     }
 }
 
+
 function move(deltaX,deltaY){
 switch(level[playerPosition.y+deltaY][playerPosition.x+deltaX]){
+
     case 0:
     case 2:
+        //プレイヤーの移動
         level[playerPosition.y][playerPosition.x]-=4;
         playerPosition.x+=deltaX;
         playerPosition.y+=deltaY;
@@ -142,21 +150,58 @@ switch(level[playerPosition.y+deltaY][playerPosition.x+deltaX]){
         playerSprite.setPosition(165+25*playerPosition.x,185-25*playerPosition.y);
     break;
     case 3:
-    case 5:
-        if(level[playerPosition.y+deltaY*2][playerPosition.x+deltaX*2]==0 ||
-           level[playerPosition.y+deltaY*2][playerPosition.x+deltaX*2]==2){
-            level[playerPosition.y][playerPosition.x]-=4;
-            playerPosition.x+=deltaX;
-            playerPosition.y+=deltaY;
-            level[playerPosition.y][playerPosition.x]+=1;
-            playerSprite.setPosition(165+25*playerPosition.x,185-25*playerPosition.y);
-            level[playerPosition.y+deltaY][playerPosition.x+deltaX]+=3;
-            var movingCrate = cratesArray[playerPosition.y][playerPosition.x];
-            movingCrate.setPosition(movingCrate.getPosition().x+25*deltaX,movingCrate.
-            getPosition().y-25*deltaY);
-            cratesArray[playerPosition.y+deltaY][playerPosition.x+deltaX]=movingCrate;
-            cratesArray[playerPosition.y][playerPosition.x]=null;
+    //プレイやーと木箱の先に何もない(0)、或いは穴(2)ならば移動させる
+    if(level[playerPosition.y+deltaY*2][playerPosition.x+deltaX*2]==0 ||
+       level[playerPosition.y+deltaY*2][playerPosition.x+deltaX*2]==2){
+        //4(プレイヤー)のいた場所がなにも無くなる(0)ため、-4
+        level[playerPosition.y][playerPosition.x]-=4;
+        playerPosition.x+=deltaX;
+        playerPosition.y+=deltaY;
+        //3(木箱)の場所が4(プレイヤー)になるため、+1
+        level[playerPosition.y][playerPosition.x]+=1;
+        playerSprite.setPosition(165+25*playerPosition.x,185-25*playerPosition.y);
+        //0(なし)の場所に3(木箱)が来るため、+3
+        level[playerPosition.y+deltaY][playerPosition.x+deltaX]+=3;
+
+        if(level[playerPosition.y+deltaY][playerPosition.x+deltaX]==5){
+          flg++;
+          audioEngine.playEffect(res.se_down);
+        }
+        var movingCrate = cratesArray[playerPosition.y][playerPosition.x];
+        movingCrate.setPosition(movingCrate.getPosition().x+25*deltaX,movingCrate.
+        getPosition().y-25*deltaY);
+        cratesArray[playerPosition.y+deltaY][playerPosition.x+deltaX]=movingCrate;
+        cratesArray[playerPosition.y][playerPosition.x]=null;
+
+
         }
         break;
     }
+    if(flg == 2){
+      restartGame();
+      //1秒待ってシーン遷移
+      setTimeout(function(){
+      cc.director.runScene(new GameOverScene());
+    },1000);
+        //this.addChild(label, 1);
+      //console.log(level[playerPosition.y+deltaY][playerPosition.x+deltaX]+"flg"+flg);
+    }
+}
+//宇宙船を元の位置に戻して、宇宙船の変数を初期化する
+function restartGame() {
+  //audioEngine.playEffect(res.se_miss);
+  console.log("戻れ");
+  /*cratesArray[playerPosition.y][playerPosition.x]=null;
+  playerSprite.setPosition(240, 115);*/
+  cc.director.runScene(new gameScene());
+  level = [
+    [1, 1, 1, 1, 1, 1, 1],
+    [1, 1, 0, 0, 0, 0, 1],
+    [1, 1, 3, 3, 2, 0, 1],
+    [1, 0, 0, 4, 0, 0, 1],
+    [1, 0, 0, 1, 0, 2, 1],
+    [1, 0, 0, 1, 1, 1, 1],
+    [1, 1, 1, 1, 1, 1, 1]
+  ];
+
 }
