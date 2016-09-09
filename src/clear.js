@@ -4,10 +4,16 @@ var ThirdLayer = cc.Layer.extend({
         this._super();
         var size = cc.director.getWinSize();
 
-        var label = cc.LabelTTF.create("STAGE　CLEAR！", "Arial", 40);
+        var label = cc.LabelTTF.create("STAGE　CLEAR！", "PixelMplus10", 40);
         label.setPosition(size.width / 2, size.height * 4 / 5);
         this.addChild(label, 1);
 
+        var label2 = cc.LabelTTF.create("Next Stage→", "PixelMplus10", 30);
+        label2.setPosition(size.width / 2, size.height / 5);
+        this.addChild(label2, 1);
+
+        audioEngine.stopMusic();
+        audioEngine.playEffect(res.clear);
         cc.eventManager.addListener({
             event: cc.EventListener.TOUCH_ONE_BY_ONE,
             swallowTouches: true,
@@ -22,17 +28,10 @@ var ThirdLayer = cc.Layer.extend({
     },
     onTouchMoved: function(touch, event) {},
     onTouchEnded: function(touch, event) {
-      flg = 0;
+      //restartGame();
+      flg=0;
+      stageSelect +=1;
       cc.director.runScene(new gameScene());
-      /*level = [
-        [1, 1, 1, 1, 1, 1, 1],
-        [1, 1, 0, 0, 0, 0, 1],
-        [1, 1, 3, 3, 2, 0, 1],
-        [1, 0, 0, 4, 0, 0, 1],
-        [1, 0, 0, 1, 0, 2, 1],
-        [1, 0, 0, 1, 1, 1, 1],
-        [1, 1, 1, 1, 1, 1, 1]
-      ];*/
     },
 });
 

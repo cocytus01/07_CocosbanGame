@@ -1,57 +1,103 @@
 var size;
-var level = [
-  [1, 1, 1, 1, 1, 1, 1],
-  [1, 1, 0, 0, 0, 0, 1],
-  [1, 1, 3, 3, 2, 0, 1],
-  [1, 0, 0, 4, 0, 0, 1],
-  [1, 0, 0, 1, 0, 2, 1],
-  [1, 0, 0, 1, 1, 1, 1],
-  [1, 1, 1, 1, 1, 1, 1]
-];
+
 var playerPosition; //マップ内のプレイやの位置(ｘ、ｙ)を保持する
 var playerSprite; //プレイヤーのスプライト
 var cratesArray = []; //配置した木箱のスプライトを配列に保持する
+
+var stageSelect = 1;
 
 var startTouch;
 var endTouch;
 var swipeTolerance = 10;//スワイプかを判断する閾値
 
-var flg =0;
+var flg = 0;
 var audioEngine;
-
 
 var gameScene = cc.Scene.extend({
   onEnter: function() {
     this._super();
     audioEngine = cc.audioEngine;
 
-    audioEngine.playMusic(res.bgm, true);
+    if (!audioEngine.isMusicPlaying()) {
+      audioEngine.playMusic(res.bgm , true);
+    }
+
+    if(stageSelect==1){
+       level = [
+        [1, 1, 1, 1, 1, 1, 1],
+        [1, 1, 0, 0, 0, 2, 1],
+        [1, 1, 3, 3, 2, 0, 1],
+        [1, 0, 0, 4, 0, 0, 1],
+        [1, 0, 3, 1, 0, 2, 1],
+        [1, 0, 0, 1, 1, 1, 1],
+        [1, 1, 1, 1, 1, 1, 1]
+      ];
+    }else
+    if(stageSelect == 2) {
+       level = [
+        [1, 1, 1, 1, 1, 1, 1],
+        [1, 2, 1, 0, 0, 0, 1],
+        [1, 0, 3, 0, 1, 0, 1],
+        [1, 2, 3, 4, 3, 0, 1],
+        [1, 3, 2, 0, 1, 2, 1],
+        [1, 0, 0, 1, 1, 1, 1],
+        [1, 1, 1, 1, 1, 1, 1]
+      ];
+    }else
+    if(stageSelect == 3) {
+       level = [
+        [1, 1, 1, 1, 1, 1, 1],
+        [1, 2, 0, 3, 0, 2, 1],
+        [1, 3, 0, 3, 3, 1, 1],
+        [1, 2, 0, 4, 3, 2, 1],
+        [1, 1, 0, 1, 0, 0, 1],
+        [1, 2, 0, 0, 0, 1, 1],
+        [1, 1, 1, 1, 1, 1, 1]
+      ];
+    }
+
     var layer0 = new gameLayer();
     layer0.init();
     this.addChild(layer0);
+
+    LevelText = cc.LabelTTF.create("LEVEL"+stageSelect,"PixelMplus10","20",cc.TEXT_ALIGNMENT_CENTER);
+    this.addChild(LevelText);
+    LevelText.setPosition(100,185);
+
+    ResetText = cc.LabelTTF.create("キーボードでリセット！\nひとつ前になんて\n戻れないヨ！","PixelMplus10","10",cc.TEXT_ALIGNMENT_CENTER);
+    this.addChild(ResetText);
+    ResetText.setPosition(100,150);
+
+    ExplanText = cc.LabelTTF.create("　　　　注意！　　　\n木箱は一度穴に落とすと\n動かせなくなるヨ！","PixelMplus10","10",cc.TEXT_ALIGNMENT_CENTER);
+    this.addChild(ExplanText);
+    ExplanText.setPosition(100,105);
+
   }
 });
 
 var gameLayer = cc.Layer.extend({
   init: function() {
     this._super();
-    //スプライトフレームのキャッシュオブジェクトを作成する
-    cache = cc.spriteFrameCache;
+    console.log(stageSelect);
+
     //スプライトフレームのデータを読み込む
-    cache.addSpriteFrames(res.spritesheet_plist);
-    var backgroundSprite = cc.Sprite.create(cache.getSpriteFrame("background.png"));
-    //アンチエイリアス処理を止める
-    backgroundSprite.getTexture().setAliasTexParameters();
+      //スプライトフレームのキャッシュオブジェクトを作成する
+      cache = cc.spriteFrameCache;
+      cache.addSpriteFrames(res.spritesheet_plist);
 
-    backgroundSprite.setPosition(240, 160);
-    //スプライトがとても小さいので拡大する
-    backgroundSprite.setScale(5);
-    this.addChild(backgroundSprite);
+      var backgroundSprite = cc.Sprite.create(cache.getSpriteFrame("background.png"));
+      //アンチエイリアス処理を止める
+      backgroundSprite.getTexture().setAliasTexParameters();
 
-    var levelSprite = cc.Sprite.create(cache.getSpriteFrame("level.png"));
-    levelSprite.setPosition(240, 110);
-    levelSprite.setScale(5);
-    this.addChild(levelSprite);
+      backgroundSprite.setPosition(240, 160);
+      //スプライトがとても小さいので拡大する
+      backgroundSprite.setScale(5);
+      this.addChild(backgroundSprite);
+
+      var levelSprite = cc.Sprite.create(cache.getSpriteFrame("level"+stageSelect+".png"));
+      levelSprite.setPosition(240, 110);
+      levelSprite.setScale(5);
+      this.addChild(levelSprite);
 
     for (i = 0; i < 7; i++) {　　　　　　
       cratesArray[i] = [];　 //配列オブジェクトの生成
@@ -85,19 +131,31 @@ var gameLayer = cc.Layer.extend({
     }
     //return true;
     cc.eventManager.addListener(listener, this);
+    cc.eventManager.addListener(Keylistener, this);
+
   },
 });
+
+var Keylistener = cc.EventListener.create( {
+    event: cc.EventListener.KEYBOARD,
+    onKeyPressed: function (keyCode, event) {
+      if(keyCode == 82){
+        cc.director.runScene(new GameOverScene());
+      }
+      else{restartGame();}
+    }
+} );
 
 var listener = cc.EventListener.create({
 event: cc.EventListener.TOUCH_ONE_BY_ONE,
 swallowTouches: true,
 onTouchBegan:function (touch,event) {
-startTouch = touch.getLocation();
-return true;
+  startTouch = touch.getLocation();
+  return true;
 },
 onTouchEnded:function(touch, event){
-endTouch = touch.getLocation();
-swipeDirection();
+  endTouch = touch.getLocation();
+  swipeDirection();
 }
 });
 //スワイプ方向を検出する処理
@@ -109,26 +167,19 @@ function swipeDirection(){
     if(Math.abs(distX)+Math.abs(distY)>swipeTolerance){
         if(Math.abs(distX)>Math.abs(distY)){
             if(distX>0){//右方向移動
-              //playerSprite.setPosition(playerSprite.getPosition().x+25,playerSprite.getPosition().y);
                 move(1,0);
             }
             else{//左方向移動
-              //playerSprite.setPosition(playerSprite.getPosition().x-25,playerSprite.getPosition().y);
                 move(-1,0);
             }
         }
         else{
-        //  console.log("endTouch.y "+endTouch.y );
-        //  console.log("startTouch.y "+startTouch.y );
-        //  console.log("distY "+ distY );
             if(distY>0){ //上方向移動
-            //  playerSprite.setPosition(playerSprite.getPosition().x,playerSprite.getPosition().y+25);
                console.log("上 move(0,-1) distY "+ distY );
               move(0,-1);
 
             }
             else{ //下方向移動
-              //playerSprite.setPosition(playerSprite.getPosition().x,playerSprite.getPosition().y-25);
               console.log("下 move(0,1) distY "+ distY );
               move(0,1);
             }
@@ -139,7 +190,6 @@ function swipeDirection(){
 
 function move(deltaX,deltaY){
 switch(level[playerPosition.y+deltaY][playerPosition.x+deltaX]){
-
     case 0:
     case 2:
         //プレイヤーの移動
@@ -148,6 +198,7 @@ switch(level[playerPosition.y+deltaY][playerPosition.x+deltaX]){
         playerPosition.y+=deltaY;
         level[playerPosition.y][playerPosition.x]+=4;
         playerSprite.setPosition(165+25*playerPosition.x,185-25*playerPosition.y);
+        audioEngine.playEffect(res.Pmove);
     break;
     case 3:
     //プレイやーと木箱の先に何もない(0)、或いは穴(2)ならば移動させる
@@ -172,36 +223,50 @@ switch(level[playerPosition.y+deltaY][playerPosition.x+deltaX]){
         getPosition().y-25*deltaY);
         cratesArray[playerPosition.y+deltaY][playerPosition.x+deltaX]=movingCrate;
         cratesArray[playerPosition.y][playerPosition.x]=null;
-
+        audioEngine.playEffect(res.move);
 
         }
         break;
     }
-    if(flg == 2){
-      restartGame();
+
+    if(stageSelect == 1 && flg == 3){
       //1秒待ってシーン遷移
       setTimeout(function(){
-      cc.director.runScene(new GameOverScene());
-    },1000);
-        //this.addChild(label, 1);
-      //console.log(level[playerPosition.y+deltaY][playerPosition.x+deltaX]+"flg"+flg);
+        cc.director.runScene(new GameOverScene());
+      },500);
+    }else
+    if(stageSelect == 2 && flg == 4){
+      //1秒待ってシーン遷移
+      setTimeout(function(){
+        cc.director.runScene(new GameOverScene());
+      },500);
     }
 }
 //宇宙船を元の位置に戻して、宇宙船の変数を初期化する
 function restartGame() {
-  //audioEngine.playEffect(res.se_miss);
-  console.log("戻れ");
-  /*cratesArray[playerPosition.y][playerPosition.x]=null;
-  playerSprite.setPosition(240, 115);*/
+  flg = 0;
+  console.log("戻れ"+stageSelect);
   cc.director.runScene(new gameScene());
-  level = [
-    [1, 1, 1, 1, 1, 1, 1],
-    [1, 1, 0, 0, 0, 0, 1],
-    [1, 1, 3, 3, 2, 0, 1],
-    [1, 0, 0, 4, 0, 0, 1],
-    [1, 0, 0, 1, 0, 2, 1],
-    [1, 0, 0, 1, 1, 1, 1],
-    [1, 1, 1, 1, 1, 1, 1]
-  ];
-
+  if(stageSelect==1){
+    level = [
+      [1, 1, 1, 1, 1, 1, 1],
+      [1, 1, 0, 0, 0, 2, 1],
+      [1, 1, 3, 3, 2, 0, 1],
+      [1, 0, 0, 4, 0, 0, 1],
+      [1, 0, 3, 1, 0, 2, 1],
+      [1, 0, 0, 1, 1, 1, 1],
+      [1, 1, 1, 1, 1, 1, 1]
+    ];
+  }else
+  if(stageSelect==2){
+    level = [
+     [1, 1, 1, 1, 1, 1, 1],
+     [1, 2, 1, 0, 0, 0, 1],
+     [1, 0, 3, 0, 1, 0, 1],
+     [1, 2, 3, 4, 3, 0, 1],
+     [1, 3, 2, 0, 1, 2, 1],
+     [1, 0, 0, 1, 1, 1, 1],
+     [1, 1, 1, 1, 1, 1, 1]
+   ];
+  }
 }
