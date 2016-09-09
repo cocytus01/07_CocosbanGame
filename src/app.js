@@ -48,9 +48,9 @@ var gameScene = cc.Scene.extend({
        level = [
         [1, 1, 1, 1, 1, 1, 1],
         [1, 2, 0, 3, 0, 2, 1],
-        [1, 3, 0, 3, 3, 1, 1],
+        [1, 3, 0, 3, 0, 1, 1],
         [1, 2, 0, 4, 3, 2, 1],
-        [1, 1, 0, 1, 0, 0, 1],
+        [1, 1, 3, 1, 0, 0, 1],
         [1, 2, 0, 0, 0, 1, 1],
         [1, 1, 1, 1, 1, 1, 1]
       ];
@@ -64,7 +64,7 @@ var gameScene = cc.Scene.extend({
     this.addChild(LevelText);
     LevelText.setPosition(100,185);
 
-    ResetText = cc.LabelTTF.create("キーボードでリセット！\nひとつ前になんて\n戻れないヨ！","PixelMplus10","10",cc.TEXT_ALIGNMENT_CENTER);
+    ResetText = cc.LabelTTF.create("キーボードでリセット！\nひとつ前には\n戻れないヨ！","PixelMplus10","10",cc.TEXT_ALIGNMENT_CENTER);
     this.addChild(ResetText);
     ResetText.setPosition(100,150);
 
@@ -142,7 +142,9 @@ var Keylistener = cc.EventListener.create( {
       if(keyCode == 82){
         cc.director.runScene(new GameOverScene());
       }
-      else{restartGame();}
+      else{
+        restartGame();
+      }
     }
 } );
 
@@ -229,13 +231,19 @@ switch(level[playerPosition.y+deltaY][playerPosition.x+deltaX]){
         break;
     }
 
-    if(stageSelect == 1 && flg == 3){
+    if(stageSelect == 1 && flg == 2 + stageSelect){
       //1秒待ってシーン遷移
       setTimeout(function(){
         cc.director.runScene(new GameOverScene());
       },500);
     }else
-    if(stageSelect == 2 && flg == 4){
+    if(stageSelect == 2 && flg == 2 + stageSelect){
+      //1秒待ってシーン遷移
+      setTimeout(function(){
+        cc.director.runScene(new GameOverScene());
+      },500);
+    }
+    if(stageSelect == 3 && flg == 2 + stageSelect){
       //1秒待ってシーン遷移
       setTimeout(function(){
         cc.director.runScene(new GameOverScene());
@@ -269,4 +277,15 @@ function restartGame() {
      [1, 1, 1, 1, 1, 1, 1]
    ];
   }
+  if(stageSelect==3){
+    level = [
+     [1, 1, 1, 1, 1, 1, 1],
+     [1, 2, 0, 3, 0, 2, 1],
+     [1, 3, 0, 3, 0, 1, 1],
+     [1, 2, 0, 4, 3, 2, 1],
+     [1, 1, 3, 1, 0, 0, 1],
+     [1, 2, 0, 0, 0, 1, 1],
+     [1, 1, 1, 1, 1, 1, 1]
+   ];
+ }
 }
